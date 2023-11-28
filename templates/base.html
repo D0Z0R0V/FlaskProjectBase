@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+    <head>
+        <meta charset="utf-8">
+        {% if title %}
+        <title>{{ title }} - Blog</title>
+        {% else %}
+        <title>Welcome my Blog</title>
+        {% endif %}
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="">
+    </head>
+    <body>
+        {% block content %} {% endblock %}
+    </body>
+</html>
