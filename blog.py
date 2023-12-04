@@ -1,18 +1,13 @@
 from flask import Flask, render_template, flash, redirect, url_for
 from config import Config
 from form import LoginForm
-#from flask_migrate import Migrate
-
-import sqlite3
+from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 
 app = Flask(__name__)
 app.config.from_object(Config)
-
-
-def get_db_connection():
-    conn = sqlite3.connect("db_app.db")
-    conn.row_factory = sqlite3.Row
-    return conn
+db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 
 
 @app.route("/")
