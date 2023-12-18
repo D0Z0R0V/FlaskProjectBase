@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block title %} Приложение погоды {% endblock %}
+
+{% block content %}
+
+        <div class='container mt-5'>
+            <div class='row'>
+                <div class='col-5 offset-1'>
+                    <h1>Погода в вашем городе</h1>
+                    <form action="/" method='POST'>
+                        <label for='city'>Город:</label>
+                        <input type="text" name="city" placeholder='Введите город' class="form-control" value="{{ request.form['context'] }}"></input>
+                        <input type="submit" name='send' value='Определить' class='mt-2 btn btn-danger '>
+                    </form>
+                </div>
+                <div class='col-4 offset-2'>
+                    <h1>История городов</h1>
+                    <div class='alert alert-info'>
+                        <div class='row'>
+                            <div class='col-8'>
+                                <b>Город:</b> {{ city }} <br>
+                                <b>Температура:</b> {{ temperature }}°C <br>
+                            </div>
+                            <div class='col-3 offset-1'>
+                                <img src='https://openweathermap.org/img/wn/{{ icon }}.png' alt='Photo' class='img-thumbnail'>
+                            </div>
+                        </div>                       
+                    </div>
+                </div>
+            </div>
+        </div>
+{% endblock %}

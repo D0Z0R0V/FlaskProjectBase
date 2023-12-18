@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block title %} Document {% endblock %}
+
+{% block content %}
+<div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column text-center">
+    <main role="main" class="inner cover">
+        <h1 class="cover-heading">Блок документации</h1>
+        <p class="lead">Нужен для описания взаимодействия. Создано для поддержания функционала.</p>
+        <p class="lead">
+            <a href="{{ url_for('home') }}" class="btn btn-lg btn-secondary">Вернуться</a>
+        </p>
+    </main>
+</div>
+{% endblock %}

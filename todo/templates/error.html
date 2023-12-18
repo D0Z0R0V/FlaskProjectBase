@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block title %} Ошибка {% endblock %}
+
+{% block content %} 
+<div class='container'>
+<h1>Произошла ошибка</h1>
+<p>{{ error_message }}</p>
+<a href="{{ url_for('index')}}">
+    <span class="btn btn-primary">Вернуться</span>
+</a>
+</div>
+
+{% endblock %}
