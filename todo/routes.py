@@ -113,6 +113,11 @@ def valuta():
         }
 
         return render_template("index.html", context=context)
+    
+    
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    return render_template('forma.html')
 
 
 @app.route("/error")
