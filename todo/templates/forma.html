@@ -17,6 +17,9 @@
             <input type="checkbox" class="form-check-input" id="exampleCheck1">
             <label class="form-check-label" for="exampleCheck1">Check me out</label>
         </div>
+        {% for error in field.errors%}
+        <span style="color: red;">{{ error }}</span>
+        {% endfor %}
     {% endfor %}
   <button type="submit" class="btn btn-primary">{{ form.submit }}</button>
 </form>
