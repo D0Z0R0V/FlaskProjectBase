@@ -2,17 +2,11 @@
 
 python3 -m venv venv
 . venv/bin/activate
-Активируем git
-
-git init
-Создаем файлы и папки в проекте
-
-Устанавливаем flask и ORM SQLAlchemy
 
 pip install Flask Flask-SQLAlchemy
-Создаем файл с зависимостями проекта
+Устанвливаем файл с зависимостями проекта
 
-pip freeze > requirements.txt
+pip install -r requirements.txt
 Устанавливаем переменные окружения
 
 для bash
