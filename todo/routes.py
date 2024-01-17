@@ -1,6 +1,6 @@
 import requests
 from flask import Flask, render_template, request, url_for, redirect
-from todo.form import SiteForm
+#from todo.form import SiteForm
 
 from todo.models import ToDo, db
 
@@ -118,8 +118,8 @@ def valuta():
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
-    form = SiteForm()
-    return render_template("forma.html", form=form)
+    
+    return render_template("forma.html")
 
 
 @app.route("/error")
