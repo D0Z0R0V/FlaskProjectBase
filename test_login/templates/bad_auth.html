@@ -1,11 +1,11 @@
-<link rel="stylesheet" href="{{ url_for('static', filename='css/bad_auth.css') }}"
+<link rel="stylesheet" href="{{ url_for('static', filename='css/bad_auth.css') }}">
 
-<from method="POST">
+<form method="POST">
     <div class="container">
-        <label><b>Введеные данные не верные. Попробуйте еще раз</b></label>
-    </div>
-
+      <label><b>Повторите ввод еще раз, что-то пошло не так!</b></label>  
+    <div>
+    
     <div class="container">
-        <span class="reg"> <a href="{{ url_for('form_login') }}">Вернуться к авторизации</a></span>
+      <span class="reg"> <a href="{{ url_for('form_login') }}">Вернуться к авторизации</a></span>
     </div>
-</from>
+</form> 

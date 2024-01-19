@@ -1,4 +1,5 @@
 from flask import Flask, request, render_template, url_for
+from werkzeug.security import generate_password_hash, check_password_hash
 import sqlite3
 
 app = Flask(__name__)
@@ -13,10 +14,11 @@ def get_db_connection():
 def form_login():
     if request.method == "POST":
         Username = request.form.get('Username')
-        Password = request.form.get('Password')
+        Password = generate_password_hash(request.form.get('Password'))
         
         db = get_db_connection()
         cursor_db = db.execute(('''SELECT password FROM Users WHERE username = "{}"''').format(Username))
+        print(cursor_db)
         
         pas = cursor_db.fetchall()
         cursor_db.close()
@@ -37,14 +39,16 @@ def form_login():
 def regist():
     if request.method == "POST":
         Username = request.form.get('Username')
-        Password = request.form.get('Password')
+        Password = generate_password_hash(request.form.get('Password'))
+        
+        #print(Password)
         
         db = get_db_connection()
         db.execute("INSERT INTO Users (username, password) VALUES( ?, ?)", (Username, Password))
         db.commit()
         db.close()
         
-        return render_template('successful.html')
+        return render_template('successful copy.html')
     
     return render_template('regist.html')
 
