@@ -1,5 +1,5 @@
 form {
-    font: 14px Stem-Regular,arial, sans-serif;/*Выбираем шрифт */
+   font: 14px Stem-Regular,arial, sans-serif;/*Выбираем шрифт */
    border: 1px solid black;/*Цвет, размер и тип границы */
    border-radius: 20px;/*Скругляем углы */
    color: #777991;/*Цвет label */

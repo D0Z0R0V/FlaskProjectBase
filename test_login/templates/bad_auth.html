@@ -2,6 +2,10 @@
 
 <from method="POST">
     <div class="container">
-        <label><b>Введен неправильный логин или пароль</b></label>
+        <label><b>Введеные данные не верные. Попробуйте еще раз</b></label>
+    </div>
+
+    <div class="container">
+        <span class="reg"> <a href="{{ url_for('form_login') }}">Вернуться к авторизации</a></span>
     </div>
 </from>
