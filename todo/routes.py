@@ -1,19 +1,20 @@
 import requests
 import sqlite3
-from flask import Flask, render_template, request, url_for, redirect
+from flask import Flask, render_template, request, url_for, redirect, flash
 from werkzeug.exceptions import abort
 
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = 'the secret key'
 
 def get_db_connection():
-    conn = sqlite3.connect('app.db')
+    conn = sqlite3.connect('todo/app.db')
     conn.row_factory = sqlite3.Row
     return conn
 
-def get_post(id_post):
+def get_post(todo_id):
     db = get_db_connection()
-    post = db.execute('SELECT * FROM ToDo_Users WHERER id = ?', (id_post)).fetchone()
+    post = db.execute("SELECT * FROM ToDo_Users WHERE id = ?", (todo_id,)).fetchone()
     db.close()
     
     if post is None:
@@ -50,25 +51,42 @@ def home():
 @app.post("/add")
 def add():
     title = request.form.get("title")
-    new_todo = ToDo(title=title, is_complete=False)
-    db.session.add(new_todo)
-    db.session.commit()
+    is_complete = False
+    
+    if not title:
+        flash("Добавьте название задачи!")
+    else:
+        db = get_db_connection()      
+        db.execute("INSERT INTO ToDo_Users (title, is_complete) VALUES (?, ?)",(title, is_complete))
+        db.commit()
+        db.close()
+        
     return redirect(url_for("home"))
 
 
 @app.get("/update/<int:todo_id>")
 def update(todo_id):
-    todo = ToDo.query.filter_by(id=todo_id).first()
-    todo.is_complete = not todo.is_complete
-    db.session.commit()
+    
+    complete = request.form.get("is_complete", type=bool)
+    
+    db = get_db_connection()
+    db.execute("SELECT * FROM ToDo_Users WHERE id = ?", (todo_id,)).fetchone()
+    db.commit()
+    
+    db.execute("UPDATE ToDo_Users SET is_complete = ?" "WHERE id = ?", (complete, todo_id))
+    db.commit()
+    db.close()
+    
     return redirect(url_for("home"))
 
 
 @app.get("/delete/<int:todo_id>")
 def delete(todo_id):
-    todo = ToDo.query.filter_by(id=todo_id).first()
-    db.session.delete(todo)
-    db.session.commit()
+    db = get_db_connection()
+    db.execute("DELETE FROM ToDo_Users WHERE id=?", (todo_id,))
+    db.commit()
+    db.close()
+
     return redirect(url_for("home"))
 
 
