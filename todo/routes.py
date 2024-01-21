@@ -1,18 +1,24 @@
 import requests
+import sqlite3
 from flask import Flask, render_template, request, url_for, redirect
-#from todo.form import SiteForm
-
-from todo.models import ToDo, db
+from werkzeug.exceptions import abort
 
 
-def create_app():
-    app = Flask(__name__)
-    app.config.from_pyfile("config.py")
-    db.init_app(app)
-    return app
+app = Flask(__name__)
 
+def get_db_connection():
+    conn = sqlite3.connect('app.db')
+    conn.row_factory = sqlite3.Row
+    return conn
 
-app = create_app()
+def get_post(id_post):
+    db = get_db_connection()
+    post = db.execute('SELECT * FROM ToDo_Users WHERER id = ?', (id_post)).fetchone()
+    db.close()
+    
+    if post is None:
+        return abort(404)
+    return post
 
 
 def get_weather_data(city):
@@ -35,7 +41,9 @@ def get_weather_data(city):
 
 @app.get("/")
 def home():
-    todo_list = ToDo.query.all()
+    db = get_db_connection()
+    todo_list = db.execute('SELECT * FROM ToDo_Users').fetchall()
+    db.close()
     return render_template("index.html", todo_list=todo_list, title="Главная страница")
 
 

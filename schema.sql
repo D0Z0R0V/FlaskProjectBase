@@ -8,5 +8,5 @@ CREATE TABLE IF NOT EXISTS ToDo_Users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     title TEXT CHECK(length(title) <= 100),
     is_complete BOOLEAN NOT NULL,
-    FOREIGN KEY (Users_id) REFERENCES Users (id)
+    FOREIGN KEY (id) REFERENCES Users (id)
 );

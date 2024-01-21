@@ -1,15 +1,11 @@
-import os
+import sqlite3
 
-from dotenv import load_dotenv
+connection = sqlite3.connect('app.db')
 
-load_dotenv()
+with open('schema.sql', 'r') as sq:
+    connection.executescript(sq.read())
 
-# /// = relative path, //// = absolute path
-FLASK_APP = os.getenv("FLASK_APP")
-FLASK_ENV = os.getenv("FLASK_ENV")
-SQLALCHEMY_DATABASE_URI = os.getenv("DB_URL")
-SQLALCHEMY_TRACK_MODIFICATIONS = os.getenv("SQLALCHEMY_TRACK_MODIFICATIONS")
+cursor_db = connection.cursor()
 
-
-class Config(object):
-    SECRET_KEY = os.environ.get("SECRET_KEY") or "any_key"
+connection.commit()
+connection.close()
