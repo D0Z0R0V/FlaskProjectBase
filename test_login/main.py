@@ -19,7 +19,7 @@ def form_login():
         Password = generate_password_hash(request.form.get('Password'))
         
         db = get_db_connection()
-        cursor_db = db.execute(('''SELECT password FROM Users WHERE username = "{}"''').format(Username))
+        cursor_db = db.execute(('SELECT password FROM Users WHERE username = "{}"').format(Username))
         print(cursor_db)
         
         pas = cursor_db.fetchall()

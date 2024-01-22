@@ -2,10 +2,11 @@ import requests
 import sqlite3
 from flask import Flask, render_template, request, url_for, redirect, flash
 from werkzeug.exceptions import abort
+from todo.config import Config
 
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'the secret key'
+app.config.from_object(Config)
 
 def get_db_connection():
     conn = sqlite3.connect('todo/app.db')
@@ -51,13 +52,13 @@ def home():
 @app.post("/add")
 def add():
     title = request.form.get("title")
-    is_complete = False
+    complete = request.form.get("is_complete", type=bool) == False
     
     if not title:
         flash("Добавьте название задачи!")
     else:
         db = get_db_connection()      
-        db.execute("INSERT INTO ToDo_Users (title, is_complete) VALUES (?, ?)",(title, is_complete))
+        db.execute("INSERT INTO ToDo_Users (title, is_complete) VALUES (?, ?)",(title, complete))
         db.commit()
         db.close()
         
@@ -66,17 +67,15 @@ def add():
 
 @app.get("/update/<int:todo_id>")
 def update(todo_id):
-    
-    complete = request.form.get("is_complete", type=bool)
-    
     db = get_db_connection()
-    db.execute("SELECT * FROM ToDo_Users WHERE id = ?", (todo_id,)).fetchone()
-    db.commit()
     
-    db.execute("UPDATE ToDo_Users SET is_complete = ?" "WHERE id = ?", (complete, todo_id))
+    state = db.execute("SELECT is_complete FROM ToDo_Users WHERE id = ?", (todo_id,)).fetchone()[0]
+    state = not state
+    
+    db.execute("UPDATE ToDo_Users SET is_complete = ? WHERE id = ?", (state, todo_id))
     db.commit()
     db.close()
-    
+
     return redirect(url_for("home"))
 
 
