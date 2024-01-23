@@ -1,6 +1,8 @@
 import requests
 import sqlite3
+import getpass
 from flask import Flask, render_template, request, url_for, redirect, flash
+from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.exceptions import abort
 from todo.config import Config
 
@@ -41,11 +43,52 @@ def get_weather_data(city):
     return weather_data
 
 
-@app.get("/")
+@app.route('/', methods=['GET', 'POST'])
+def form_login():
+    if request.method == "POST":
+        Username = request.form.get('Username')
+        Password = request.form.get('Password')
+        
+        db = get_db_connection()
+        cursor_db = db.execute(('SELECT password FROM Users WHERE username = "{}"').format(Username))
+        
+        pas = cursor_db.fetchone()[0]
+        cursor_db.close()
+        
+        try: 
+            if not check_password_hash(pas, Password):
+                return render_template('login/bad_auth.html')
+        except:
+            return render_template('login/bad_auth.html')
+        
+        db.close()
+        return render_template('login/successful.html')
+    
+    return render_template('login/author.html')
+
+
+@app.route('/reqist', methods=['POST', 'GET'])
+def regist():
+    if request.method == "POST":
+        Username = request.form.get('Username')
+        Password = generate_password_hash(request.form.get('Password'))
+        
+        db = get_db_connection()
+        db.execute("INSERT INTO Users (username, password) VALUES( ?, ?)", (Username, Password))
+        db.commit()
+        db.close()
+        
+        return render_template('login/successful_copy.html')
+    
+    return render_template('login/regist.html')
+
+
+@app.get("/todo")
 def home():
     db = get_db_connection()
     todo_list = db.execute('SELECT * FROM ToDo_Users').fetchall()
     db.close()
+    print(getpass.getuser())
     return render_template("index.html", todo_list=todo_list, title="Главная страница")
 
 
@@ -139,12 +182,6 @@ def valuta():
         }
 
         return render_template("index.html", context=context)
-
-
-@app.route("/login", methods=["GET", "POST"])
-def login():
-    
-    return render_template("forma.html")
 
 
 @app.route("/error")

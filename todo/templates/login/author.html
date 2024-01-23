@@ -1,0 +1,17 @@
+<link rel="stylesheet" href="{{ url_for('static', filename= 'css/auth.css') }}">
+
+<form method="POST">
+    <div class="container">
+      <label for="Username"><b>Логин</b></label>
+  
+      <input type="text" placeholder="" name="Username" required>
+      <label for="Password"><b>Пароль</b></label>
+      <input type="password" placeholder="" name="Password" required>
+      <button type="submit">Войти</button>
+    </div>
+    <div class="container">
+      <span class="reg"> <a href="{{ url_for('regist') }}">Регистрация</a></span>
+    </div>
+</form>  
+  
+ 

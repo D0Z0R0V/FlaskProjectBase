@@ -1,0 +1,11 @@
+<link rel="stylesheet" href="{{ url_for('static', filename='css/succes.css') }}">
+
+<form method="POST">
+    <div class="container">
+        <label><b>Вы успешно зарегистрировались</b></label>
+    </div>
+
+    <div class="container">
+        <span class="reg"> <a href="{{ url_for('form_login') }}">Вернуться к авторизации</a></span>
+    </div>
+</form>
