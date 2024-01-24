@@ -1,9 +1,0 @@
-env
-todo/.env
-__pycache__
-Procfile
-app.db
-instance
-Procfile
-._.DS_Store
-test_login/login.db
