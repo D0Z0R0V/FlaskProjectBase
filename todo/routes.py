@@ -1,13 +1,16 @@
 import requests
 import sqlite3
-import getpass
-from flask import Flask, render_template, request, url_for, redirect, flash
+from flask_login import LoginManager, UserMixin, login_required
+from flask import Flask, render_template, request, url_for, redirect, flash, session
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.exceptions import abort
 from todo.config import Config
 
 
 app = Flask(__name__)
+login_manager = LoginManager()
+login_manager.init_app(app) # инициализируем LoginManager с app
+login_manager.login_view = '/'
 app.config.from_object(Config)
 
 def get_db_connection():
@@ -43,14 +46,39 @@ def get_weather_data(city):
     return weather_data
 
 
+# создаем функцию, которая будет загружать пользователя по его идентификатору из базы данных
+# Flask-Login использует эту функцию для получения информации о текущем пользователе
+@login_manager.user_loader
+def load_user(user_id):
+    db = get_db_connection()
+    
+    db.execute('SELECT username, password FROM Users WHERE id = ?', (user_id,))
+    result = db.fetchone()
+    db.close()
+    if result:
+        username, password = result # распаковываем кортеж в переменные
+        user = User(user_id, username, password) # создаем объект User
+        return user
+    else:
+        return None
+
+
+class User(UserMixin):
+    def __init__(self, id, username, password):
+        self.id = id 
+        self.username = username 
+        self.password = password 
+
+
 @app.route('/', methods=['GET', 'POST'])
 def form_login():
     if request.method == "POST":
         Username = request.form.get('Username')
         Password = request.form.get('Password')
+        session["username"] = Username
         
         db = get_db_connection()
-        cursor_db = db.execute(('SELECT password FROM Users WHERE username = "{}"').format(Username))
+        cursor_db = db.execute('SELECT password FROM Users WHERE username = ?',(Username,))
         
         pas = cursor_db.fetchone()[0]
         cursor_db.close()
@@ -88,8 +116,8 @@ def home():
     db = get_db_connection()
     todo_list = db.execute('SELECT * FROM ToDo_Users').fetchall()
     db.close()
-    print(getpass.getuser())
-    return render_template("index.html", todo_list=todo_list, title="Главная страница")
+    username = session.get("username", "DoZorov")
+    return render_template("index.html", todo_list=todo_list, username=username, title="Главная страница")
 
 
 @app.post("/add")
@@ -133,6 +161,7 @@ def delete(todo_id):
 
 
 @app.route("/weather", methods=("POST", "GET"))
+@login_required
 def weather():
     if request.method == "POST":
         city = request.form["city"]
@@ -153,6 +182,7 @@ def weather():
 
 
 @app.route("/valuta", methods=("POST", "GET"))
+@login_required
 def valuta():
     response = requests.get(url="https://api.exchangerate-api.com/v4/latest/USD").json()
     currencies = response.get("rates")
