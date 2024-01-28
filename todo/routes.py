@@ -1,16 +1,13 @@
 import requests
 import sqlite3
-from flask_login import LoginManager, UserMixin, login_required
 from flask import Flask, render_template, request, url_for, redirect, flash, session
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.exceptions import abort
 from todo.config import Config
+from todo.models import ToDo
 
 
 app = Flask(__name__)
-login_manager = LoginManager()
-login_manager.init_app(app) # инициализируем LoginManager с app
-login_manager.login_view = '/'
 app.config.from_object(Config)
 
 def get_db_connection():
@@ -44,30 +41,6 @@ def get_weather_data(city):
         return None
 
     return weather_data
-
-
-# создаем функцию, которая будет загружать пользователя по его идентификатору из базы данных
-# Flask-Login использует эту функцию для получения информации о текущем пользователе
-@login_manager.user_loader
-def load_user(user_id):
-    db = get_db_connection()
-    
-    db.execute('SELECT username, password FROM Users WHERE id = ?', (user_id,))
-    result = db.fetchone()
-    db.close()
-    if result:
-        username, password = result # распаковываем кортеж в переменные
-        user = User(user_id, username, password) # создаем объект User
-        return user
-    else:
-        return None
-
-
-class User(UserMixin):
-    def __init__(self, id, username, password):
-        self.id = id 
-        self.username = username 
-        self.password = password 
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -114,7 +87,12 @@ def regist():
 @app.get("/todo")
 def home():
     db = get_db_connection()
-    todo_list = db.execute('SELECT * FROM ToDo_Users').fetchall()
+    user_id = session.get('user_id')
+    
+    if user_id is None:
+        return "Please log in first", 401
+    
+    todo_list = db.execute('SELECT * FROM ToDo_Users WHERE user_id = ?', (user_id,)).fetchall()
     db.close()
     username = session.get("username", "DoZorov")
     return render_template("index.html", todo_list=todo_list, username=username, title="Главная страница")
@@ -122,6 +100,12 @@ def home():
 
 @app.post("/add")
 def add():
+    user_id = session.get('user_id')
+    
+    if user_id is None:
+        flash("Пожалуйста, войдите в систему")
+        return redirect(url_for("form_login"))
+    
     title = request.form.get("title")
     complete = request.form.get("is_complete", type=bool) == False
     
@@ -129,21 +113,24 @@ def add():
         flash("Добавьте название задачи!")
     else:
         db = get_db_connection()      
-        db.execute("INSERT INTO ToDo_Users (title, is_complete) VALUES (?, ?)",(title, complete))
+        db.execute("INSERT INTO ToDo_Users (title, is_complete, user_id) VALUES (?, ?, ?)",(title, complete, user_id))
         db.commit()
         db.close()
+        flash("Задача добавлена успешно!")
         
     return redirect(url_for("home"))
 
 
 @app.get("/update/<int:todo_id>")
 def update(todo_id):
+    user_id = session.get('user_id')
+    
     db = get_db_connection()
     
     state = db.execute("SELECT is_complete FROM ToDo_Users WHERE id = ?", (todo_id,)).fetchone()[0]
     state = not state
     
-    db.execute("UPDATE ToDo_Users SET is_complete = ? WHERE id = ?", (state, todo_id))
+    db.execute("UPDATE ToDo_Users SET is_complete = ? WHERE id = ? AND WHERE user_id = ?", (state, todo_id, user_id))
     db.commit()
     db.close()
 
@@ -152,8 +139,10 @@ def update(todo_id):
 
 @app.get("/delete/<int:todo_id>")
 def delete(todo_id):
+    user_id = session.get('user_id')
+    
     db = get_db_connection()
-    db.execute("DELETE FROM ToDo_Users WHERE id=?", (todo_id,))
+    db.execute("DELETE FROM ToDo_Users WHERE id=? AND WHERE user_id = ?", (todo_id, user_id))
     db.commit()
     db.close()
 
@@ -161,7 +150,6 @@ def delete(todo_id):
 
 
 @app.route("/weather", methods=("POST", "GET"))
-@login_required
 def weather():
     if request.method == "POST":
         city = request.form["city"]
@@ -182,7 +170,6 @@ def weather():
 
 
 @app.route("/valuta", methods=("POST", "GET"))
-@login_required
 def valuta():
     response = requests.get(url="https://api.exchangerate-api.com/v4/latest/USD").json()
     currencies = response.get("rates")

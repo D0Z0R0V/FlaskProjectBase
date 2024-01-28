@@ -13,7 +13,13 @@
 </head>
     <body> 
         <div class="d-flex flex-column flex-md-row align-items-center p-3 px-md-4 mb-3 bg-white border-bottom shadow-sm">
-            <h5 class="my-0 mr-md-auto font-weight-normal">{{ username }}</h5>
+            <h5 class="my-0 mr-md-auto font-weight-normal">
+                {% if username %}
+                    {{ username }}
+                {% else %}
+                    DoZrov
+                {% endif %}
+            </h5>
             <nav class="my-2 my-md-0 mr-md-3">
                 <a class="p-2 text-dark" href="{{ url_for('home') }}">Главная</a>
                 <a class="p-2 text-dark" href="{{ url_for('weather') }}">Погода</a>
@@ -23,6 +29,15 @@
             </nav>
             <a class="btn btn-outline-primary" href="{{ url_for('doc') }}">Документация</a>
         </div>
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <ul class="flashes">
+        {% for message in messages %}
+            <li>{{ message }}</li>
+        {% endfor %}
+            </ul>
+        {% endif %}
+        {% endwith %}
         {% block content %} {% endblock %}
     </body>
 </html>
