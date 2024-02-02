@@ -1,17 +1,18 @@
 import requests
 import sqlite3
+import os
 from flask import Flask, render_template, request, url_for, redirect, flash, session
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.exceptions import abort
 from todo.config import Config
-from todo.models import ToDo
 
 
 app = Flask(__name__)
 app.config.from_object(Config)
 
 def get_db_connection():
-    conn = sqlite3.connect('todo/app.db')
+    db_path = os.path.abspath('todo/app.db')
+    conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
     return conn
 
@@ -54,6 +55,9 @@ def form_login():
         cursor_db = db.execute('SELECT password FROM Users WHERE username = ?',(Username,))
         
         pas = cursor_db.fetchone()[0]
+        db.execute('SELECT id FROM Users WHERE username = ?', (Username,))
+        user_id = cursor_db.fetchone()[0]
+        session['user_id'] = user_id
         cursor_db.close()
         
         try: 
@@ -75,8 +79,12 @@ def regist():
         Password = generate_password_hash(request.form.get('Password'))
         
         db = get_db_connection()
+ 
         db.execute("INSERT INTO Users (username, password) VALUES( ?, ?)", (Username, Password))
         db.commit()
+        db.execute('SELECT id FROM Users WHERE username = ?', (Username,))
+        user_id = db.fetchone()[0]
+        session['user_id'] = user_id
         db.close()
         
         return render_template('login/successful_copy.html')
@@ -84,13 +92,17 @@ def regist():
     return render_template('login/regist.html')
 
 
+@app.route('/logout')
+def logout():
+    session.clear() 
+    return redirect(url_for('form_login'))
+
+
 @app.get("/todo")
 def home():
     db = get_db_connection()
-    user_id = session.get('user_id')
+    user_id = session.get('username')
     
-    if user_id is None:
-        return "Please log in first", 401
     
     todo_list = db.execute('SELECT * FROM ToDo_Users WHERE user_id = ?', (user_id,)).fetchall()
     db.close()
@@ -100,11 +112,10 @@ def home():
 
 @app.post("/add")
 def add():
-    user_id = session.get('user_id')
+    user_id = session.get('username')
     
     if user_id is None:
         flash("Пожалуйста, войдите в систему")
-        return redirect(url_for("form_login"))
     
     title = request.form.get("title")
     complete = request.form.get("is_complete", type=bool) == False
@@ -116,7 +127,6 @@ def add():
         db.execute("INSERT INTO ToDo_Users (title, is_complete, user_id) VALUES (?, ?, ?)",(title, complete, user_id))
         db.commit()
         db.close()
-        flash("Задача добавлена успешно!")
         
     return redirect(url_for("home"))
 
@@ -151,6 +161,11 @@ def delete(todo_id):
 
 @app.route("/weather", methods=("POST", "GET"))
 def weather():
+    user_id = session.get('user_id')
+    if user_id is None:
+        flash("Пожалуйста, войдите в систему")
+        return redirect(url_for("form_login"))
+    
     if request.method == "POST":
         city = request.form["city"]
         weather_data = get_weather_data(city)
