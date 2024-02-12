@@ -55,9 +55,6 @@ def form_login():
         cursor_db = db.execute('SELECT password FROM Users WHERE username = ?',(Username,))
         
         pas = cursor_db.fetchone()[0]
-        db.execute('SELECT id FROM Users WHERE username = ?', (Username,))
-        user_id = cursor_db.fetchone()[0]
-        session['user_id'] = user_id
         cursor_db.close()
         
         try: 
@@ -82,9 +79,6 @@ def regist():
  
         db.execute("INSERT INTO Users (username, password) VALUES( ?, ?)", (Username, Password))
         db.commit()
-        db.execute('SELECT id FROM Users WHERE username = ?', (Username,))
-        user_id = db.fetchone()[0]
-        session['user_id'] = user_id
         db.close()
         
         return render_template('login/successful_copy.html')
@@ -101,10 +95,8 @@ def logout():
 @app.get("/todo")
 def home():
     db = get_db_connection()
-    user_id = session.get('username')
     
-    
-    todo_list = db.execute('SELECT * FROM ToDo_Users WHERE user_id = ?', (user_id,)).fetchall()
+    todo_list = db.execute('SELECT * FROM ToDo_Users').fetchall()
     db.close()
     username = session.get("username", "DoZorov")
     return render_template("index.html", todo_list=todo_list, username=username, title="Главная страница")
@@ -112,19 +104,14 @@ def home():
 
 @app.post("/add")
 def add():
-    user_id = session.get('username')
-    
-    if user_id is None:
-        flash("Пожалуйста, войдите в систему")
-    
     title = request.form.get("title")
-    complete = request.form.get("is_complete", type=bool) == False
+    complete = request.form.get("completed", type=bool) == False
     
     if not title:
         flash("Добавьте название задачи!")
     else:
         db = get_db_connection()      
-        db.execute("INSERT INTO ToDo_Users (title, is_complete, user_id) VALUES (?, ?, ?)",(title, complete, user_id))
+        db.execute("INSERT INTO ToDo_Users (title, completed) VALUES (?, ?)",(title, complete))
         db.commit()
         db.close()
         
@@ -133,14 +120,12 @@ def add():
 
 @app.get("/update/<int:todo_id>")
 def update(todo_id):
-    user_id = session.get('user_id')
-    
     db = get_db_connection()
     
-    state = db.execute("SELECT is_complete FROM ToDo_Users WHERE id = ?", (todo_id,)).fetchone()[0]
+    state = db.execute("SELECT completed FROM ToDo_Users WHERE id = ?", (todo_id,)).fetchone()[0]
     state = not state
     
-    db.execute("UPDATE ToDo_Users SET is_complete = ? WHERE id = ? AND WHERE user_id = ?", (state, todo_id, user_id))
+    db.execute("UPDATE ToDo_Users SET completed = ? WHERE id = ?", (state, todo_id))
     db.commit()
     db.close()
 
@@ -149,10 +134,9 @@ def update(todo_id):
 
 @app.get("/delete/<int:todo_id>")
 def delete(todo_id):
-    user_id = session.get('user_id')
     
     db = get_db_connection()
-    db.execute("DELETE FROM ToDo_Users WHERE id=? AND WHERE user_id = ?", (todo_id, user_id))
+    db.execute("DELETE FROM ToDo_Users WHERE id = ?", (todo_id))
     db.commit()
     db.close()
 

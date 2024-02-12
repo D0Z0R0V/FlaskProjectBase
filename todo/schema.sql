@@ -4,10 +4,10 @@ CREATE TABLE IF NOT EXISTS Users (
     password TEXT NOT NULL 
 );
 
-CREATE TABLE IF NOT EXISTS ToDo_Users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    title TEXT CHECK(length(title) <= 100),
-    is_complete BOOLEAN,
-    user_id text NOT NULL,
+CREATE TABLE ToDo_Users (
+    todo_id INTEGER PRIMARY KEY,
+    user_id INTEGER,
+    title TEXT NOT NULL,
+    completed BOOLEAN NOT NULL,
     FOREIGN KEY (user_id) REFERENCES Users (id)
 );
