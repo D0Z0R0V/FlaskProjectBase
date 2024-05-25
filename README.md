@@ -20,6 +20,3 @@ set FLASK_ENV=development
 Запускаем приложение
 
 flask run
-
-Ссылка на оригинал
-https://www.youtube.com/watch?v=3vfum74ggHE
