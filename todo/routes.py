@@ -27,7 +27,7 @@ def get_post(todo_id):
 
 
 def get_weather_data(city):
-    appid = "f6ae488f0ab8f3b69469ef0f66452b1b"
+    appid = ""
     url = (
         "https://api.openweathermap.org/data/2.5/weather?q={}&units=metric&appid=".format(
             city
